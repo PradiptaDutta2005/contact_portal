@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load variables from .env
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -9,10 +11,13 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://127.0.0.1:27017/contactDB', {
+// ✅ Connect to MongoDB Atlas using URI from .env
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-});
+})
+.then(() => console.log('MongoDB Connected'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/contact.html'));
