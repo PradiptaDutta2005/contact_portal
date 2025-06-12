@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f5f7fa;
+      padding: 2rem;
+    }
+    .section-header {
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .query-card {
+      border-left: 5px solid #0d6efd;
+      background-color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+    }
+    .done-card {
+      border-left-color: #198754;
+    }
+    .query-card h5 {
+      margin-bottom: 0.3rem;
+    }
+    .btn-mark-done {
+      float: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mb-4 text-primary">Admin Query Management Panel</h1>
+
+    <div class="row">
+      <!-- Pending Section -->
+      <div class="col-md-6">
+        <div class="section-header text-primary">📌 Pending Queries</div>
+        <div id="pendingList"></div>
+      </div>
+
+      <!-- Done Section -->
+      <div class="col-md-6">
+        <div class="section-header text-success">✅ Done Queries</div>
+        <div id="doneList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadQueries() {
+      const response = await fetch('/queries');
+      const data = await response.json();
+
+      const pendingList = document.getElementById('pendingList');
+      const doneList = document.getElementById('doneList');
+
+      pendingList.innerHTML = '';
+      doneList.innerHTML = '';
+
+      data.forEach(query => {
+        const card = document.createElement('div');
+        card.className = 'query-card' + (query.status === 'done' ? ' done-card' : '');
+        
+        card.innerHTML = `
+          <h5>${query.name} <small class="text-muted">(${query.phone})</small></h5>
+          <p><strong>Email:</strong> ${query.email || 'N/A'}</p>
+          <p>${query.message}</p>
+        `;
+
+        if (query.status === 'pending') {
+          const btn = document.createElement('button');
+          btn.textContent = 'Mark as Done';
+          btn.className = 'btn btn-sm btn-success btn-mark-done';
+          btn.onclick = async () => {
+            await fetch('/mark-done/' + query._id, { method: 'PUT' });
+            loadQueries();
+          };
+          card.appendChild(btn);
+          pendingList.appendChild(card);
+        } else {
+          doneList.appendChild(card);
+        }
+      });
+    }
+
+    loadQueries();
+  </script>
+</body>
+</html>
